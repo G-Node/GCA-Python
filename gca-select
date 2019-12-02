@@ -25,8 +25,12 @@ def maybe_group(separator, print_empty, lst):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='GCA Selector - select field values')
-    parser.add_argument('--group-multiple', type=str, dest='g_multiple', default=None)
-    parser.add_argument('--group-fields', type=str, dest='g_fields', default=None)
+    parser.add_argument('--group-multiple', type=str, dest='g_multiple',
+                        default=None, metavar="SEPARATOR",
+                        help="Separator string to use for joining")
+    parser.add_argument('--group-fields', type=str, dest='g_fields',
+                        default=None,  metavar="SEPARATOR",
+                        help="Separator string to use for joining")
     parser.add_argument('--conference', type=str, dest='conf', default=None)
     parser.add_argument('file', type=str, default='-')
     parser.add_argument('fields', type=str, nargs='+', help='fields to select')
