@@ -20,13 +20,17 @@ def maybe_group(separator, print_empty, lst):
         return lst
     if not lst:
         return [''] if print_empty else lst
-    x = map(str, lst)
+    x = list(map(str, lst))
     return [separator.join(x)] if any(x) else []
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='GCA Selector - select field values')
-    parser.add_argument('--group-multiple', type=str, dest='g_multiple', default=None)
-    parser.add_argument('--group-fields', type=str, dest='g_fields', default=None)
+    parser.add_argument('--group-multiple', type=str, dest='g_multiple',
+                        default=None, metavar="SEPARATOR",
+                        help="Separator string to use for joining")
+    parser.add_argument('--group-fields', type=str, dest='g_fields',
+                        default=None,  metavar="SEPARATOR",
+                        help="Separator string to use for joining")
     parser.add_argument('--conference', type=str, dest='conf', default=None)
     parser.add_argument('file', type=str, default='-')
     parser.add_argument('fields', type=str, nargs='+', help='fields to select')
@@ -46,12 +50,12 @@ if __name__ == '__main__':
     fd = codecs.open(args.file, 'r', encoding='utf-8') if args.file != '-' else sys.stdin
     abstracts = Abstract.from_data(fd.read(), conf)
 
-    p_mlt = partial(maybe_group, args.g_multiple, True)
-    p_fld = partial(maybe_group, args.g_fields, False)
+    p_mlt = partial(maybe_group, args.g_multiple, False)
+    p_fld = partial(maybe_group, args.g_fields, True)
 
     do_chain = it.chain.from_iterable
 
-    val = do_chain(p_fld(do_chain(p_mlt(a.select_field(f)) for f in fields)) for a in abstracts)
+    val = do_chain(p_mlt(do_chain(p_fld(a.select_field(f)) for f in fields)) for a in abstracts)
     val = filter(lambda a: a is not None, val)
     data = delimiter.join(map(str, val))
     sys.stdout.write(data)
