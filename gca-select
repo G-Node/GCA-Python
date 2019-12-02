@@ -20,7 +20,7 @@ def maybe_group(separator, print_empty, lst):
         return lst
     if not lst:
         return [''] if print_empty else lst
-    x = map(str, lst)
+    x = list(map(str, lst))
     return [separator.join(x)] if any(x) else []
 
 if __name__ == '__main__':
