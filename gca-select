@@ -46,12 +46,12 @@ if __name__ == '__main__':
     fd = codecs.open(args.file, 'r', encoding='utf-8') if args.file != '-' else sys.stdin
     abstracts = Abstract.from_data(fd.read(), conf)
 
-    p_mlt = partial(maybe_group, args.g_multiple, True)
-    p_fld = partial(maybe_group, args.g_fields, False)
+    p_mlt = partial(maybe_group, args.g_multiple, False)
+    p_fld = partial(maybe_group, args.g_fields, True)
 
     do_chain = it.chain.from_iterable
 
-    val = do_chain(p_fld(do_chain(p_mlt(a.select_field(f)) for f in fields)) for a in abstracts)
+    val = do_chain(p_mlt(do_chain(p_fld(a.select_field(f)) for f in fields)) for a in abstracts)
     val = filter(lambda a: a is not None, val)
     data = delimiter.join(map(str, val))
     sys.stdout.write(data)
