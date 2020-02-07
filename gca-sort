@@ -4,27 +4,26 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from gca.core import Abstract
-from gca.util import make_fields
-from six import string_types
+from gca.util import make_fields, simplify_str
 
 import argparse
 import codecs
 import sys
 
-
-s_from = u'aáàAâÂbBcCçÇdDeéEfFgGğĞhHiİîÎíīıIjJkKlLmMnNóoOöÖpPqQrRsSşŞtTuUûúÛüÜvVwWxXyYzZ'
-s_to   = u'aaaaaabbccccddeeeffgggghhiiiiiiiijjkkllmmnnoooooppqqrrssssttuuuuuuuvvwwxxyyzz'
-s_conv = dict(zip(s_from, s_to))
+from six import string_types
 
 
 def sanitize_field(x):
     if type(x) == bytes:
         return x.strip()
     elif isinstance(x, string_types):
+        """ Why only the first character???
         if x[0] in s_conv:
             x = s_conv[x[0]] + x[1:]
-        return x.strip()
-
+        """
+        return simplify_str(x)
+    elif isinstance(x, (tuple, list)):
+        x = [sanitize_field(xx) for xx in x]
     return x
 
 

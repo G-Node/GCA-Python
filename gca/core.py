@@ -98,18 +98,18 @@ class Conference(Entity):
         gid = sort_id >> 16
         aid = sort_id & 0x0000FFFF
         groups = [Group(gd) for gd in self._data['groups']]
-        group = filter(lambda x: x.prefix == gid, groups)[0]
+        group = list(filter(lambda x: x.prefix == gid, groups))[0]
         return "%s %d" % (group.brief, aid)
 
     def get_group(self, sort_id):
         gid = sort_id >> 16
         groups = [Group(gd) for gd in self._data['groups']]
-        group = filter(lambda x: x.prefix == gid, groups)[0]
+        group = list(filter(lambda x: x.prefix == gid, groups))[0]
         return group
 
     def group_for_brief(self, brief):
         groups = [Group(gd) for gd in self._data['groups']]
-        selected = filter(lambda x: x.brief == brief, groups)
+        selected = list(filter(lambda x: x.brief == brief, groups))
         if len(selected) != 1:
             raise ValueError('Error finding group with brief [%s: %d]' % (brief, len(selected)))
         return selected[0]
@@ -228,6 +228,20 @@ class Author(Entity):
 
         middle = d['middleName'] + u' ' if d['middleName'] else u""
         return d['firstName'] + u' ' + middle + d['lastName']
+
+    def latex_format_name(self):
+        d = self._data
+        first = ''
+        shortfirst = ''
+        if d['firstName'] and len(d['firstName']):
+            first = d['firstName']
+            shortfirst = self.format_initials(d['firstName'], suffix='.')
+        middle = ''
+        shortmiddle = ''
+        if d['middleName'] and len(d['middleName']):
+            middle = u' ' + d['middleName']
+            shortmiddle = u' ' + self.format_initials(d['middleName'], suffix='.')
+        return u"\\authorname{%s}{%s}{%s}{%s}{%s}" % (first, middle, shortfirst, shortmiddle, d['lastName'])
 
     def format_affiliation(self):
         af = self._data['affiliations']

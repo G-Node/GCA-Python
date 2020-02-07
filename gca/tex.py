@@ -47,73 +47,176 @@ import os
 
 %if not bare:
 
-%%!TEX TS-program = lualatex
-%%!TEX encoding = UTF-8 Unicode
+\documentclass[a4paper,11pt,oneside]{book}
 
-\documentclass[%%
-a5paper,
-9pt,%%
-twoside,%%
-final%%
-]{scrbook}
+%% customize the abstracts using the environments and commands
+%% provided at the end of the header!
 
-\usepackage{ucs}
-\usepackage[greek, french, spanish, english]{babel}
-\usepackage[utf8x]{inputenc}
-\usepackage[LGR, T1]{fontenc}
+%% math support:
+\usepackage{amsmath}    % needs to be included before the wasysym package
+\usepackage{mathtools}
+
+%% encoding and fonts:
+\usepackage[LGR,T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{newunicodechar}
+
 \usepackage{textcomp}
 \usepackage{textgreek}
-\usepackage{microtype}
-\DeclareUnicodeCharacter{8208}{-}
-\DeclareUnicodeCharacter{8210}{-}
-\DeclareUnicodeCharacter{8239}{ }
-\DeclareUnicodeCharacter{8288}{}
-\DeclareUnicodeCharacter{57404}{t}
-\DeclareUnicodeCharacter{700}{'}
-
-\usepackage{mathtools}
 \usepackage{amssymb}
+\usepackage{wasysym}
+\usepackage[squaren]{SIunits}
 
-\usepackage{chapterthumb}
+\usepackage{microtype}
 
+%% add missing definitions of unicode characters:
+\newunicodechar{³}{$^3$}
+\newunicodechar{µ}{\micro}
+\newunicodechar{°}{\degree}
+\newunicodechar{♀}{\female}
+\newunicodechar{♂}{\male}
+\newunicodechar{´}{'}
+\newunicodechar{−}{\text{--}}
+
+\DeclareUnicodeCharacter{8208}{-}    % HYPHEN
+\DeclareUnicodeCharacter{8210}{-}    % DASH
+\DeclareUnicodeCharacter{8239}{\,}   % NARROW SPACE
+\DeclareUnicodeCharacter{8288}{}
+%%\DeclareUnicodeCharacter{700}{'}
+\DeclareUnicodeCharacter{FB00}{ff}
+\DeclareUnicodeCharacter{FB01}{fi}
+\DeclareUnicodeCharacter{FB02}{fl}
+\DeclareUnicodeCharacter{FB03}{ffi}
+\DeclareUnicodeCharacter{FB04}{ffl}
+\DeclareUnicodeCharacter{FB05}{ft}
+%%\usepackage{tipa}
+%%\DeclareUnicodeCharacter{57404}{\textiota}
+
+%%%%% basic layout %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% language:
+\usepackage[english]{babel}
+
+%% graphics and figures:
+\usepackage{xcolor}
 % if figures is not None:
-\usepackage{caption}
 \usepackage{graphicx}
 \graphicspath{ {${figures}/} }
+\usepackage[format=plain,singlelinecheck=off,labelfont=bf,font={small,sf}]{caption}
 %endif
 
-\usepackage{needspace}
+%% layout:
+\usepackage[top=20mm, bottom=20mm, left=23mm, right=23mm]{geometry}
 
-\parskip0.5ex
+\usepackage{setspace}
 
-\setlength{\parindent}{0in}
+%% customize header and footer:
+%% (you may want to add the conference title, the abstract number, etc.)
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
 
-\setlength{\topmargin}{-23mm}
-\setlength{\oddsidemargin}{-8mm}
-\setlength{\evensidemargin}{-12mm}
-\setlength{\textwidth}{117mm}
-\setlength{\textheight}{185mm}
-\setlength{\footskip}{20pt}
+%% customize chapter and sections appearance:
+%% use commands of the titlesec package to modify the layout of the abstract's title:
+\usepackage[sf,bf]{titlesec}
+\titleformat{\section}{\sffamily\bfseries\Large\raggedright}{\thesection}{1em}{}
 
-\usepackage{hyperref}
+%% number the abstracts, but do not number acknowledgements and references:
+\setcounter{secnumdepth}{1}
+%% abstract number without chapter number:
+\renewcommand{\thesection}{\arabic{section}}
+%%\renewcommand{\thesection}{P\arabic{section}}  % indicate poster
 
-\usepackage{multind}
-\makeindex{pages}
-\makeindex{posterid}
+%% generate author index:
+\usepackage{imakeidx}
+\makeindex[name=authors, title={Author index}]
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% make nice clickable links:
+\usepackage[breaklinks=true,colorlinks=true,citecolor=blue!30!black,urlcolor=blue!30!black,linkcolor=blue!30!black]{hyperref}
+
+%%%%% abstract specific layout %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Each element of the abstract (title, authors, affiliations, text, ... is encapsulated
+%% in an environment or command as defined in the following.
+%% Change their definition to modify the appaerance of the abstracts.
+
+%% Environment for formatting the whole abstract:
+\newenvironment{abstractblock}
+  {}
+  {}
+
+%% Command for separating subsequent abstracts:
+%if single_page:
+\newcommand{\newabstract}{\clearpage}
+%else:
+\newcommand{\newabstract}{}
+%endif
+
+%% Command for setting the abstract's title. It gets four arguments:
+%% 1. some optional string (user supplied by manual editing the latex file)
+%% 2. poster ID
+%% 3. last name of first author
+%% 4. title of abstract
+\newcommand{\abstracttitle}[4][]{\section[#3: #4]{#4}}
+%%\newcommand{\abstracttitle}[4][]{\section[#2]{#4}}
+
+%% Environment for formatting the authors block:
+\newenvironment{authors}
+  {\begin{flushleft}\setstretch{1.2}\sffamily}
+  {\end{flushleft}\vspace{-3ex}}
+
+%% Command for formatting of author names. Five arguments:
+%% 1. first name
+%% 2. middle name
+%% 3. initial of first name
+%% 4. initial of middle name
+%% 5. last name
+\newcommand{\authorname}[5]{\mbox{#1#2 \textbf{#5}}}  %% first and middle name plus bold last name
+%% \newcommand{\authorname}[5]{\mbox{\textbf{#5}, #3#4}}  %% bold last name, first and middle initials
+%% \newcommand{\authorname}[5]{\mbox{\textbf{#5}, #1#4}}  %% bold last name, full first name and middle initials
+
+%% Environment for formatting the affiliations:
+%% each affiliation is provided as an \item
+\newenvironment{affiliations}
+  {\begin{flushleft}\begin{enumerate}\setlength{\itemsep}{-0.5ex}\footnotesize\sffamily}
+  {\end{enumerate}\end{flushleft}}
+
+%% Environment for formatting the abstract's main text:
+\newenvironment{abstracttext}
+  {\noindent\hspace*{-0.8ex}}
+  {}
+
+%% Environment for formatting the figure block:
+\newenvironment{afigure}
+  {\begin{center}\begin{minipage}{0.9\textwidth}}
+  {\end{minipage}\end{center}}
+  
+%% Maximum height of a figure:
+\newlength{\figureheight}
+\setlength{\figureheight}{0.35\textheight}
+
+%% Environment for formatting the acknowledgements block:
+\newenvironment{acknowledgements}
+  {\subsubsection{Acknowledgements}\small}
+  {}
+
+%% Environment for formatting the references:
+\newenvironment{references}
+  {\subsubsection{References}\footnotesize\begin{list}{}{\leftmargin=1.5em \listparindent=0pt \rightmargin=0pt \topsep=0.5ex \parskip=0pt \partopsep=0pt \itemsep=0pt \parsep=0pt}}
+  {\end{list}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
 
 \frontmatter
 
 %%%%%%%%%%%%%
 \mainmatter
-
 %endif
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 <%
 cur_state = check_cur_state(None, None)
 %>
@@ -123,110 +226,101 @@ cur_state = check_cur_state(None, None)
     new_chapter, new_section = check_cur_state(abstract, cur_state)
 %>
     %if new_chapter is not None:
-    \cleardoublepage \chapter{${new_chapter}} \addtocounter{chapterthumb}{1} \newpage
+    \cleardoublepage \chapter{${new_chapter}} \newpage
     %endif
     %if new_section is not None:
-    \section*{${new_section}}
+    \section{${new_section}}
     %endif
 
     ${mk_abstract(idx, abstract, figures is not None, show_meta)}
-    %if single_page:
-    \clearpage
-    %endif
 % endfor
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% appendix
 %if not bare:
 \backmatter
-\chapter{Index}
-\sffamily\footnotesize
-\chapter{Index}
-\printindex{pages}{Authors}
+
+\printindex[authors]
 
 \end{document}
 %endif
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 <%def name="mk_abstract(idx, abstract, include_figures, print_meta)">
-    \subsection*{\textmd{\sffamily [${abstract.poster_id}]} \hspace{1mm} ${mk_tex_text(abstract.title)} }
-    \noindent ${mk_authors(abstract.authors)} \\*[0.5ex]
-    \small ${mk_affiliations(abstract.affiliations)} \
-    %if abstract.doi:
-    doi: \href{http://dx.doi.org/${abstract.doi}}{${abstract.doi}}
-    %endif
-    \normalsize \nopagebreak\\*[-2.0ex]
+\begin{abstractblock}
+\abstracttitle[]{${abstract.poster_id}}{${abstract.authors[0].last_name}}{${mk_tex_text(abstract.title)}}
+${mk_authors(abstract.authors)}
+${mk_affiliations(abstract.affiliations)}
+%if abstract.doi:
+doi: \href{http://dx.doi.org/${abstract.doi}}{${abstract.doi}}
+%endif
 
+\begin{abstracttext}
+${abstract.text}
+\end{abstracttext}
+%if abstract.alt_id > 0 and abstract.conference is not None:
+  \textbf{See also Poster}: ${abstract.conference.sort_id_to_string(abstract.alt_id)}
+%endif
+%if len(abstract.figures) and include_figures:
+    ${mk_figure(abstract.figures[0])}
+%endif
+%if abstract.acknowledgements:
+    ${mk_acknowledgements(abstract.acknowledgements)}
+%endif
+%if abstract.references:
+    ${mk_references(abstract.references)}
+%endif
+%if print_meta:
+\small
+Topic: ${abstract.topic}
+%if abstract.is_talk:
+Talk: ${mk_tex_text(abstract.reason_for_talk)}\\*[-0.5ex]
+%endif
+\normalsize
+%endif
+\end{abstractblock}
 
-    ${abstract.text}
-    %if abstract.alt_id > 0 and abstract.conference is not None:
-
-
-        \textbf{See also Poster}: ${abstract.conference.sort_id_to_string(abstract.alt_id)}
-    %endif
-    %if len(abstract.figures) and include_figures:
-        ${mk_figure(abstract.figures[0])}
-    %endif
-    %if abstract.acknowledgements:
-        ${mk_acknowledgements(abstract.acknowledgements)}
-    %endif
-    %if abstract.references:
-        ${mk_references(abstract.references)}
-    %endif
-    %if print_meta:
-    \small
-    Topic: ${abstract.topic}
-    %if abstract.is_talk:
-    Talk: ${mk_tex_text(abstract.reason_for_talk)}\\*[-0.5ex]
-    %endif
-    \normalsize
-    %endif
-    \vskip \glueexpr\smallskipamount + 0pt plus 10ex minus 3ex\relax
-    \pagebreak[3]
-
+\newabstract
 </%def>
 
 <%def name="mk_authors(authors)">
+\begin{authors}
 % for idx, author in enumerate(authors):
   <%
      sep = ', ' if idx+1 < len(authors) else ''
      aff = author.format_affiliation()
      epi = '$^{%s}$' % aff if aff else ''
-  %> ${author.format_name()}${epi}${sep}\index{pages}{${author.index_name}} \
+  %> ${author.latex_format_name()}${epi}${sep}\index[authors]{${author.index_name}}
 % endfor
+\end{authors}
 </%def>
 
 <%def name="mk_affiliations(affiliations)">
+\begin{affiliations}
 % for idx, affiliation in enumerate(affiliations):
-  \emph{${idx+1}. ${mk_tex_text(affiliation.format_affiliation())}}\\*[-0.5ex]
+  \item[${idx+1}.] ${mk_tex_text(affiliation.format_affiliation())}
 % endfor
+\end{affiliations}
 </%def>
 
 <%def name="mk_acknowledgements(acknowledgements)">
-\vspace{1ex}\renewcommand{\baselinestretch}{0.9}\footnotesize \textbf{Acknowledgements} \\*[0em]
-${mk_tex_text(acknowledgements)}\
-\par\renewcommand{\baselinestretch}{1.0}\normalsize
+\begin{acknowledgements}
+${mk_tex_text(acknowledgements)}
+\end{acknowledgements}
 </%def>
 
 <%def name="mk_references(references)">
-\vspace{1ex}
-\renewcommand{\baselinestretch}{0.9}\footnotesize \needspace{3\baselineskip}\textbf{References}\nopagebreak
-\begin{list}{}{\leftmargin=1.5em \listparindent=0pt \rightmargin=0pt \topsep=0.5ex \parskip=0pt \partopsep=0pt \itemsep=0pt \parsep=0pt}
+\begin{references}
 %for idx, ref in enumerate(references):
   \item[${idx+1}] ${mk_tex_text(ref.display_text)} ${mk_doi(ref)}
 %endfor
-\end{list}
-\par\renewcommand{\baselinestretch}{1.0}\normalsize
+\end{references}
 </%def>
 
 <%def name="mk_figure(figure)">
-\vspace{1mm}\makebox[\textwidth][c]{\begin{minipage}[c]{0.9\linewidth}
-    \centering
-    \includegraphics[width=0.50\textwidth]{${figure.uuid}}
+\begin{afigure}
+    \centerline{\includegraphics[width=1\linewidth, height=1\figureheight, keepaspectratio]{${figure.uuid}}}
     \captionof*{figure}{\small ${mk_tex_text(figure.caption)}}
-\end{minipage}
-\vspace{1em}
-}
+\end{afigure}
 </%def>
 
 <%def name="mk_doi(ref)">
